@@ -18,6 +18,7 @@ RUN dotnet publish "AberturaFechamentoBlazor.csproj" -c Release -o /app/publish
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-preview AS final
 WORKDIR /app
 COPY --from=build /app/publish .
+COPY --from=build /src/alm_hardware.csv .
 
 # O Render escuta por padrao na porta 10000
 ENV ASPNETCORE_URLS=http://+:10000
