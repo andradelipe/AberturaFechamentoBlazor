@@ -28,7 +28,7 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-// Endpoint leve para UptimeRobot / Monitoramento (evita o container dormir)
-app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
+// Endpoint leve para UptimeRobot / Monitoramento (suporta GET, HEAD e OPTIONS para evitar 405)
+app.MapMethods("/health", new[] { "GET", "HEAD", "OPTIONS" }, () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
 
 app.Run();
