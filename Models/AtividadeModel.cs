@@ -44,7 +44,7 @@ public class AtividadeModel
         sb.AppendLine($"SETOR: {RoomSetor}");
         sb.AppendLine($"GALPÃO: {Galpao}");
         sb.AppendLine($"CELULAR: {Celular}");
-        sb.AppendLine($"ETIQUETA STELLANTIS: {Etiqueta}");
+        sb.AppendLine($"ETIQUETA PATRIMONIAL: {Etiqueta}");
         sb.AppendLine($"SERIAL NUMBER: {Serial}");
         sb.AppendLine($"SOLICITANTE: {Solicitante}");
         sb.AppendLine();
@@ -52,7 +52,7 @@ public class AtividadeModel
         sb.AppendLine($"FALHA: {DescricaoFalha}");
         sb.AppendLine($"AÇÃO CORRETIVA: {AcaoCorretiva}");
         sb.AppendLine($"LOCALIZAÇÃO: {Galpao} - {RoomSetor}");
-        sb.AppendLine($"ETIQUETA STELLANTIS: {Etiqueta}");
+        sb.AppendLine($"ETIQUETA PATRIMONIAL: {Etiqueta}");
         sb.AppendLine($"SERIAL NUMBER: {Serial}");
 
         if (EquipamentoSubstituido)
@@ -94,7 +94,7 @@ public class AtividadeModel
                $"SETOR: {RoomSetor}\n" +
                $"GALPÃO / COLUNA: {Galpao}\n" +
                $"CELULAR: {Celular}\n" +
-               $"ETIQUETA STELLANTIS: {Etiqueta}\n" +
+               $"ETIQUETA PATRIMONIAL: {Etiqueta}\n" +
                $"SERIAL NUMBER: {Serial}\n" +
                $"DATA: {Data}\n" +
                $"CHAMADO: {Chamado}";
