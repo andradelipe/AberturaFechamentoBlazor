@@ -1,0 +1,81 @@
+@page "/substituicoes"
+@rendermode InteractiveServer
+@inject AtividadeStateService StateService
+
+<PageTitle>Substituições de Equipamentos</PageTitle>
+
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h1 class="h3 fw-bold mb-1">Histórico de Substituições</h1>
+            <p class="text-muted mb-0 small">
+                Visualização detalhada de equipamentos substituídos (Instalados vs. Recolhidos).
+            </p>
+        </div>
+        <div>
+            <a href="" class="btn btn-outline-secondary btn-sm">Novo Chamado</a>
+        </div>
+    </div>
+
+    @{
+        var substituicoes = StateService.Atividades.Where(a => a.EquipamentoSubstituido).ToList();
+    }
+
+    @if (substituicoes.Count == 0)
+    {
+        <div class="card shadow-sm border-0 text-center py-5">
+            <div class="card-body">
+                <h5 class="text-muted mt-3">Nenhuma substituição registrada até o momento.</h5>
+                <p class="text-muted small">Ao registrar um chamado com a opção "Houve Substituição de Equipamento", os detalhes aparecerão aqui.</p>
+                <a href="" class="btn btn-primary btn-sm mt-2">Registrar Atividade</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
+                <span class="fw-bold text-dark">Equipamentos Substituídos (@substituicoes.Count)</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered align-middle mb-0 small text-nowrap">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Data</th>
+                            <th>Solicitante</th>
+                            <th>Falha</th>
+                            <th class="table-success">Inst. Serial</th>
+                            <th class="table-success">Inst. Modelo</th>
+                            <th class="table-success">Inst. Item Config</th>
+                            <th class="table-success">Inst. IP</th>
+                            <th class="table-success">Inst. Local</th>
+                            <th class="table-warning">Rec. Serial</th>
+                            <th class="table-warning">Rec. Modelo</th>
+                            <th class="table-warning">Rec. Local</th>
+                            <th class="table-warning">Rec. Estado / Subestado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in substituicoes)
+                        {
+                            <tr>
+                                <td>@s.Data</td>
+                                <td>@s.Solicitante</td>
+                                <td style="max-width: 180px;" class="text-truncate" title="@s.DescricaoFalha">@s.DescricaoFalha</td>
+                                <td class="fw-bold">@s.EqSerial</td>
+                                <td>@s.EqModelo</td>
+                                <td>@s.EqItemConfig</td>
+                                <td>@s.EqIp</td>
+                                <td>@s.EqFloor - @s.EqRoom</td>
+                                <td class="fw-bold">@s.Serial</td>
+                                <td>@s.RecModelo</td>
+                                <td>@s.RecFloor - @s.RecRoom</td>
+                                <td>@s.RecEstado / @s.RecSubstatus</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

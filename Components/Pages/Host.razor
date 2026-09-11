@@ -1,0 +1,109 @@
+@page "/host"
+@rendermode InteractiveServer
+@inject HardwareService HardwareService
+
+<PageTitle>Consulta Host</PageTitle>
+
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom flex-wrap gap-2">
+        <div>
+            <h1 class="h3 fw-bold mb-1">Consulta Host / Hardware</h1>
+            <p class="text-muted mb-0 small">
+                Base Stellantis: <strong>@HardwareService.TotalRegistros.ToString("N0")</strong> equipamentos carregados.
+            </p>
+        </div>
+        <div>
+            <a href="" class="btn btn-outline-secondary btn-sm">Novo Chamado</a>
+        </div>
+    </div>
+
+    <!-- Barra de Busca -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <label class="form-label fw-semibold small">Buscar por Serial, Etiqueta (Asset Tag) ou Item de Configuração (CI):</label>
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Digite para pesquisar em tempo real..." @bind="termoBusca" @bind:event="oninput" @bind:after="RealizarBusca" />
+                @if (!string.IsNullOrWhiteSpace(termoBusca))
+                {
+                    <button class="btn btn-outline-secondary" @onclick="LimparBusca">
+                        Limpar
+                    </button>
+                }
+            </div>
+            <div class="form-text mt-2 small text-muted">
+                @if (string.IsNullOrWhiteSpace(termoBusca))
+                {
+                    <span>Exibindo os primeiros 100 registros. Digite na caixa de busca para filtrar qualquer termo.</span>
+                }
+                else
+                {
+                    <span>Exibindo <strong>@itensExibicao.Count</strong> resultados encontrados.</span>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela de Resultados -->
+    <div class="card shadow-sm mb-4">
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered table-striped align-middle mb-0 small text-nowrap">
+                <thead class="table-light">
+                    <tr>
+                        <th>Item de Configuração (CI)</th>
+                        <th>Room / Setor</th>
+                        <th>Floor / Galpão</th>
+                        <th>Número de Série</th>
+                        <th>Modelo</th>
+                        <th>Asset Tag</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (itensExibicao.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                Nenhum equipamento encontrado para o termo pesquisado.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in itensExibicao)
+                        {
+                            <tr>
+                                <td class="fw-bold font-monospace text-primary">@item.CI</td>
+                                <td>@item.Room</td>
+                                <td>@item.Floor</td>
+                                <td class="font-monospace">@item.SerialNumber</td>
+                                <td>@item.DisplayName</td>
+                                <td>@item.AssetTag</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string termoBusca = "";
+    private List<HardwareItem> itensExibicao = new();
+
+    protected override void OnInitialized()
+    {
+        HardwareService.EnsureLoaded();
+        RealizarBusca();
+    }
+
+    private void RealizarBusca()
+    {
+        itensExibicao = HardwareService.Filtrar(termoBusca, maxResultados: 100);
+    }
+
+    private void LimparBusca()
+    {
+        termoBusca = "";
+        RealizarBusca();
+    }
+}

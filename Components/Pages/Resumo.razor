@@ -1,0 +1,88 @@
+@page "/resumo"
+@rendermode InteractiveServer
+@inject AtividadeStateService StateService
+@inject IJSRuntime JS
+
+<PageTitle>Resumo Atual</PageTitle>
+
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h1 class="h3 fw-bold mb-1">Resumo Atual</h1>
+            <p class="text-muted mb-0 small">
+                Texto formatado pronto para copiar e colar na abertura e encerramento de chamado.
+            </p>
+        </div>
+        <div>
+            <a href="" class="btn btn-outline-secondary btn-sm me-2">Voltar ao Formulário</a>
+            <button class="btn btn-primary btn-sm" @onclick="CopiarTexto">Copiar Resumo</button>
+        </div>
+    </div>
+
+    @if (copiado)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <strong>Copiado com sucesso!</strong> O resumo foi copiado para a área de transferência.
+            <button type="button" class="btn-close" @onclick="() => copiado = false"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-body-tertiary d-flex justify-content-between align-items-center py-3">
+            <span class="fw-bold">Texto Formatado do Chamado</span>
+            <button class="btn btn-outline-primary btn-sm" @onclick="CopiarTexto">Copiar</button>
+        </div>
+        <div class="card-body bg-body-tertiary p-3">
+            <pre class="p-3 bg-body border rounded" style="white-space: pre-wrap; font-family: Consolas, 'Courier New', monospace; font-size: 0.95rem; min-height: 280px; margin-bottom: 0;">@ObterTextoResumo()</pre>
+        </div>
+        <div class="card-footer bg-body-tertiary text-muted small d-flex justify-content-between align-items-center py-2">
+            <span>@(FormTemDados() ? "Exibindo dados do formulário atual em edição" : (StateService.UltimaAtividadeSalva != null ? "Exibindo dados do último registro salvo" : "Nenhum dado cadastrado ainda"))</span>
+            <button class="btn btn-sm btn-primary" @onclick="CopiarTexto">Copiar Texto</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool copiado = false;
+
+    private bool FormTemDados()
+    {
+        var f = StateService.FormAtual;
+        return !string.IsNullOrWhiteSpace(f.DescricaoFalha) ||
+               !string.IsNullOrWhiteSpace(f.AcaoCorretiva) ||
+               !string.IsNullOrWhiteSpace(f.Etiqueta) ||
+               !string.IsNullOrWhiteSpace(f.Serial) ||
+               !string.IsNullOrWhiteSpace(f.Galpao) ||
+               !string.IsNullOrWhiteSpace(f.RoomSetor) ||
+               !string.IsNullOrWhiteSpace(f.Solicitante);
+    }
+
+    private string ObterTextoResumo()
+    {
+        if (FormTemDados())
+        {
+            return StateService.FormAtual.GerarTextoResumo();
+        }
+
+        if (StateService.UltimaAtividadeSalva != null)
+        {
+            return StateService.UltimaAtividadeSalva.GerarTextoResumo();
+        }
+
+        return "Nenhuma atividade registrada ou em edição no momento.";
+    }
+
+    private async Task CopiarTexto()
+    {
+        var texto = ObterTextoResumo();
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", texto);
+            copiado = true;
+        }
+        catch
+        {
+            // Erro silencioso
+        }
+    }
+}

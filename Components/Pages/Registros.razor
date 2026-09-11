@@ -1,0 +1,224 @@
+@page "/registros"
+@rendermode InteractiveServer
+@inject AtividadeStateService StateService
+@inject IJSRuntime JS
+
+<PageTitle>Registros de Atividades</PageTitle>
+
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom flex-wrap gap-2">
+        <div>
+            <h1 class="h3 fw-bold mb-1">Registros de Atividades</h1>
+            <p class="text-muted mb-0 small">
+                Histórico de atividades registradas na sessão. Total: <strong>@StateService.Atividades.Count</strong>
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="" class="btn btn-outline-secondary btn-sm">Novo Chamado</a>
+            @if (StateService.Atividades.Count > 0)
+            {
+                <button class="btn btn-primary btn-sm" @onclick="CopiarTodos">Copiar Todos</button>
+                <button class="btn btn-outline-danger btn-sm" @onclick="LimparRegistros">Limpar Registros</button>
+            }
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(mensagemAlerta))
+    {
+        <div class="alert alert-info alert-dismissible fade show shadow-sm" role="alert">
+            @mensagemAlerta
+            <button type="button" class="btn-close" @onclick="() => mensagemAlerta = null"></button>
+        </div>
+    }
+
+    @if (StateService.Atividades.Count == 0)
+    {
+        <div class="card shadow-sm border-0 text-center py-5">
+            <div class="card-body">
+                <h5 class="text-muted mt-3">Nenhum registro cadastrado ainda.</h5>
+                <p class="text-muted small">Cadastre novos chamados na página inicial para visualizá-los aqui.</p>
+                <a href="" class="btn btn-primary btn-sm mt-2">Cadastrar Novo Chamado</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Tabela de Registros com edição direta -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-body-tertiary d-flex justify-content-between align-items-center py-3">
+                <span class="fw-bold">Tabela de Chamados Registrados</span>
+                <span class="text-muted small">Você pode digitar o número do chamado diretamente na tabela</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered align-middle mb-0 small text-nowrap">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 100px;" class="text-center">Ações</th>
+                            <th style="min-width: 140px;">Chamado</th>
+                            <th>Data</th>
+                            <th>Descrição da Falha</th>
+                            <th>Ação Corretiva</th>
+                            <th>Setor</th>
+                            <th>Galpão</th>
+                            <th>Etiqueta (CI)</th>
+                            <th>Serial</th>
+                            <th>Contato</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < StateService.Atividades.Count; i++)
+                        {
+                            var index = i;
+                            var item = StateService.Atividades[index];
+                            <tr>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary btn-sm" title="Copiar registro" @onclick="() => CopiarIndividual(item)">
+                                            Copiar
+                                        </button>
+                                        <button class="btn btn-outline-danger btn-sm" title="Excluir registro" @onclick="() => Apagar(index)">
+                                            Excluir
+                                        </button>
+                                    </div>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm" placeholder="Nº Chamado" @bind="item.Chamado" />
+                                </td>
+                                <td>@item.Data</td>
+                                <td style="max-width: 220px;" class="text-truncate" title="@item.DescricaoFalha">
+                                    <input type="text" class="form-control form-control-sm" @bind="item.DescricaoFalha" />
+                                </td>
+                                <td style="max-width: 220px;" class="text-truncate" title="@item.AcaoCorretiva">
+                                    <input type="text" class="form-control form-control-sm" @bind="item.AcaoCorretiva" />
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm" @bind="item.RoomSetor" />
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm" @bind="item.Galpao" />
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm" @bind="item.Etiqueta" />
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm" @bind="item.Serial" />
+                                </td>
+                                <td>@item.Celular</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Gerenciamento Individual / Accordion via Blazor C# State -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-body-tertiary fw-bold py-3">
+                Visualização Individual por Chamado
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="accordionRegistros">
+                    @for (int i = 0; i < StateService.Atividades.Count; i++)
+                    {
+                        var index = i;
+                        var a = StateService.Atividades[index];
+                        var expandido = itensExpandidos.Contains(index);
+
+                        <div class="accordion-item mb-2 border rounded">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button @(expandido ? "" : "collapsed") py-2" type="button" @onclick="() => ToggleExpandir(index)">
+                                    <span class="badge bg-primary me-2">#@(index + 1)</span>
+                                    <span class="me-3 fw-semibold">@(string.IsNullOrWhiteSpace(a.Chamado) ? "(Sem chamado)" : $"Chamado: {a.Chamado}")</span>
+                                    <span class="text-muted small">@(string.IsNullOrWhiteSpace(a.DescricaoFalha) ? "(Sem descrição)" : a.DescricaoFalha)</span>
+                                </button>
+                            </h2>
+                            @if (expandido)
+                            {
+                                <div class="accordion-collapse show">
+                                    <div class="accordion-body bg-body-tertiary">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="small text-muted fw-semibold">Texto do Registro:</span>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-primary" @onclick="() => CopiarIndividual(a)">
+                                                    Copiar Registro
+                                                </button>
+                                                <button class="btn btn-outline-danger" @onclick="() => Apagar(index)">
+                                                    Excluir
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <pre class="p-3 bg-body border rounded small mb-0" style="white-space: pre-wrap; font-family: Consolas, 'Courier New', monospace;">@a.GerarTextoRegistro()</pre>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private string? mensagemAlerta;
+    private HashSet<int> itensExpandidos = new();
+
+    private void ToggleExpandir(int index)
+    {
+        if (!itensExpandidos.Add(index))
+        {
+            itensExpandidos.Remove(index);
+        }
+    }
+
+    private void Apagar(int index)
+    {
+        itensExpandidos.Remove(index);
+        StateService.RemoverAtividadeNoIndice(index);
+        mensagemAlerta = "Registro excluído com sucesso.";
+    }
+
+    private void LimparRegistros()
+    {
+        itensExpandidos.Clear();
+        StateService.LimparTodas();
+        mensagemAlerta = "Todos os registros foram removidos.";
+    }
+
+    private async Task CopiarIndividual(AtividadeModel a)
+    {
+        var texto = a.GerarTextoRegistro();
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", texto);
+            mensagemAlerta = "Registro copiado para a área de transferência!";
+        }
+        catch
+        {
+            // Erro silencioso
+        }
+    }
+
+    private async Task CopiarTodos()
+    {
+        if (StateService.Atividades.Count == 0) return;
+
+        var sb = new System.Text.StringBuilder();
+        for (int i = 0; i < StateService.Atividades.Count; i++)
+        {
+            sb.AppendLine($"--- REGISTRO #{i + 1} ---");
+            sb.AppendLine(StateService.Atividades[i].GerarTextoRegistro());
+            sb.AppendLine();
+        }
+
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", sb.ToString());
+            mensagemAlerta = $"Todos os {StateService.Atividades.Count} registros foram copiados para a área de transferência!";
+        }
+        catch
+        {
+            // Erro silencioso
+        }
+    }
+}
