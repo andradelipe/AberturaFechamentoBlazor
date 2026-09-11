@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: abertura-fechamento-blazor
+    runtime: docker
+    plan: free
+    region: oregon
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
